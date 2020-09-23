@@ -245,6 +245,7 @@ function cli(value, rl, prover) {
             const value = fs.readFileSync(cmds[1], 'utf8').replace(/\s|\r?\n/g, '');
             const kb = KnowledgeBase.from(value);
             prover.set_kb(kb);
+            console.log(kb.toString());
             console.log('Knowledge base loaded successfully');
         } catch (e) {
             console.error(e.message);
