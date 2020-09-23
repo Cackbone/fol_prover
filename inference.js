@@ -129,6 +129,10 @@ class KnowledgeBase {
     get_matching_rules(q) {
         return this.rules.filter(r => r.rhs.toString().includes(q.toString()));
     }
+
+    toString() {
+        return `${Array.from(this.consts.keys()).join(', ')},\n${this.rules.map(r => r.toString()).join(',\n')}`;
+    }
 }
 
 class Prover {
@@ -186,8 +190,8 @@ class Prover {
             if (rule.lhs.eval()) {
                 dtree[str] = true;
                 if (rule.rhs.is_atom()) {
-                    rule.rhs.value = true;
-                    this.tmp_consts.set(rule.rhs.name, rule.rhs);
+                    const proved = new Atom(rule.lhs.name, true);
+                    this.tmp_consts.set(rule.rhs.name, proved);
                 }
                 return true;
             }
@@ -195,8 +199,8 @@ class Prover {
             if (rule.lhs.is_atom()) {
                 const res = this._backward_chaining(rule.lhs, dtree[str]);
                 if (res) {
-                    rule.lhs.value = true;
-                    this.tmp_consts.set(rule.lhs.name, rule.lhs);
+                    const proved = new Atom(rule.lhs.name, true);
+                    this.tmp_consts.set(rule.lhs.name, proved);
                 }
                 return res;
             }
@@ -239,8 +243,8 @@ function cli(value, rl, prover) {
     if (cmds[0] === 'loadkb') {
         try {
             const value = fs.readFileSync(cmds[1], 'utf8').replace(/\s|\r?\n/g, '');
-            const KB = KnowledgeBase.from(value);
-            prover.set_kb(KB);
+            const kb = KnowledgeBase.from(value);
+            prover.set_kb(kb);
             console.log('Knowledge base loaded successfully');
         } catch (e) {
             console.error(e.message);
