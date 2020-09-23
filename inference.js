@@ -163,13 +163,13 @@ class Prover {
             return this._backward_chaining(goal, dtree);
         }
 
-        return this._bc_operator(goal, dtree);
+        return goal.eval() || this._bc_operator(goal, dtree);
     }
 
     _backward_chaining(goal, dtree) {
         // Goal satisfied by KB
         if (this.tmp_consts.get(goal.toString())) {
-            dtree[goal.toString()] = `true (already proved)`;
+            dtree[goal.toString()] = 'true (already proved)';
             return true;
         } else if (goal.eval()) {
             dtree[goal.toString()] = true;
@@ -249,14 +249,12 @@ function cli(value, rl, prover) {
         try {
             console.log(prover.ask(cmds[1]));
         } catch (e) {
-            console.log(e);
             console.error(e.message);
         }
     } else if (cmds[0] === 'trace') {
         try {
             console.log(prover.ask(cmds[1], true));
         } catch (e) {
-            console.log(e);
             console.error(e.message);
         }
     } else if (cmds[0] === 'exit') {
