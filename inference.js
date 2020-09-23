@@ -167,7 +167,7 @@ class Prover {
             return this._backward_chaining(goal, dtree);
         }
 
-        return goal.eval() || this._bc_operator(goal, dtree);
+        return this._bc_operator(goal, dtree);
     }
 
     _backward_chaining(goal, dtree) {
