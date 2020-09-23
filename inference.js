@@ -172,7 +172,7 @@ class Prover {
             dtree[goal.toString()] = `true (already proved)`;
             return true;
         } else if (goal.eval()) {
-            dtree = true;
+            dtree[goal.toString()] = true;
             return true;
         }
 
