@@ -1,0 +1,14 @@
+{
+  "name": "inference",
+  "version": "1.0.0",
+  "description": "",
+  "main": "inference.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "treeify": "^1.1.0"
+  }
+}
