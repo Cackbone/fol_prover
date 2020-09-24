@@ -2,6 +2,7 @@ const readline = require('readline');
 const fs = require('fs');
 const treeify = require('treeify');
 
+
 class Expr {
     static from(str, consts, declaration=false, first=true) {
         if (!str) {
@@ -19,7 +20,9 @@ class Expr {
 
             return new Implication(lhs, rhs);
         }
-        const atoms = str.split('').map(c => consts.get(c) || new Atom(c, false));
+        const atoms = str
+              .split('')
+              .map(c => consts.get(c) || new Atom(c, false));
         let expr = null;
 
         for (let i = 0; i < atoms.length; ++i) {
@@ -48,6 +51,7 @@ class Expr {
     }
 }
 
+
 class Operator extends Expr {
     constructor(lhs, rhs) {
         super();
@@ -55,6 +59,7 @@ class Operator extends Expr {
         this.rhs = rhs;
     }
 }
+
 
 class And extends Operator {
     eval() {
@@ -65,6 +70,7 @@ class And extends Operator {
         return `${this.lhs.toString()}${this.rhs.toString()}`;
     }
 }
+
 
 class Implication extends Operator {
     eval() {
@@ -98,7 +104,6 @@ class Atom extends Expr {
 }
 
 
-
 class KnowledgeBase {
     constructor(rules, consts) {
         this.rules = rules;
@@ -126,14 +131,23 @@ class KnowledgeBase {
         return new KnowledgeBase(rules, consts);
     }
 
-    get_matching_rules(q) {
-        return this.rules.filter(r => r.rhs.toString().includes(q.toString()));
+    /***
+     * Get rules in KB that can lead to the goal
+     */
+    get_matching_rules(goal) {
+        return this.rules.filter(r => (
+            r.rhs.toString().includes(goal.toString())
+        ));
     }
 
     toString() {
-        return `${Array.from(this.consts.keys()).join(', ')},\n${this.rules.map(r => r.toString()).join(',\n')}`;
+        const c_str = Array.from(this.consts.keys()).join(', ');
+        const r_str = this.rules.map(r => r.toString()).join(',\n');
+
+        return `${c_str},\n${r_str}`;
     }
 }
+
 
 class Prover {
     constructor(kb) {
@@ -146,7 +160,8 @@ class Prover {
             throw new Error('Cannot evaluate your query, knowledge base is empty.');
         }
         const query = Expr.from(raw_query, this.kb.consts);
-        let display_tree = {};
+        // Used to display tree of backward chaining when trace is true
+        const display_tree = {};
         display_tree[raw_query] = {};
         const result = this._expr_bc(query, display_tree[raw_query]);
 
@@ -162,6 +177,9 @@ class Prover {
         this.kb = kb;
     }
 
+    /**
+     * Apply backward chaining to any Expr
+     */
     _expr_bc(goal, dtree) {
         if (goal.is_atom()) {
             return this._backward_chaining(goal, dtree);
@@ -171,7 +189,7 @@ class Prover {
     }
 
     _backward_chaining(goal, dtree) {
-        // Goal satisfied by KB
+        // Goal satisfied by KB or already proved
         if (this.tmp_consts.get(goal.toString())) {
             dtree[goal.toString()] = 'true (already proved)';
             return true;
@@ -214,6 +232,10 @@ class Prover {
         return false;
     }
 
+
+    /**
+     * Apply backward chaining to operators
+     */
     _bc_operator(op, dtree) {
         const infered_lhs = op.lhs.is_atom()
               ? this._backward_chaining(op.lhs, dtree)
@@ -236,49 +258,66 @@ class Prover {
 }
 
 
-function cli(value, rl, prover) {
-    const cmds = value.split(' ');
+class REPL {
+    constructor() {
+        this.prover = new Prover();
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        this.rl.on('line', this._handle_cmd.bind(this));
+        this.rl.prompt();
+    }
 
-    if (cmds[0] === 'loadkb') {
+    static run() {
+        return (new REPL());
+    }
+
+    _handle_cmd(str) {
+        const cmds = str.split(' ');
+
+        switch (cmds[0]) {
+        case 'loadkb':
+            this._loadkb(cmds[1]);
+            break;
+        case 'ask':
+            this._ask(cmds[1]);
+            break;
+        case 'trace':
+            this._ask(cmds[1], true);
+            break;
+        case 'exit':
+            this.rl.close();
+            break;
+        case '':
+            break;
+        default:
+            console.error(`Unknown command: '${cmds[0]}'`);
+        }
+
+        this.rl.prompt();
+    }
+
+    _loadkb(filename) {
         try {
-            const value = fs.readFileSync(cmds[1], 'utf8').replace(/\s|\r?\n/g, '');
+            const value = fs.readFileSync(filename, 'utf8').replace(/\s|\r?\n/g, '');
             const kb = KnowledgeBase.from(value);
-            prover.set_kb(kb);
+            this.prover.set_kb(kb);
             console.log(kb.toString());
             console.log('Knowledge base loaded successfully');
         } catch (e) {
             console.error(e.message);
         }
-    } else if (cmds[0] === 'ask') {
-        try {
-            console.log(prover.ask(cmds[1]));
-        } catch (e) {
-            console.error(e.message);
-        }
-    } else if (cmds[0] === 'trace') {
-        try {
-            console.log(prover.ask(cmds[1], true));
-        } catch (e) {
-            console.error(e.message);
-        }
-    } else if (cmds[0] === 'exit') {
-        rl.close();
     }
 
-    rl.prompt();
+    _ask(query, trace=false) {
+        try {
+            console.log(this.prover.ask(query, trace));
+        } catch (e) {
+            console.error(e.message);
+        }
+    }
 }
 
 
-function main() {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    const prover = new Prover();
-
-    rl.prompt();
-    rl.on('line', (val) => cli(val, rl, prover));
-}
-
-
-main();
+REPL.run();
