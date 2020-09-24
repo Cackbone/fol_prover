@@ -193,8 +193,8 @@ class Prover {
         if (proved) {
             let goal_name = goal;
 
-            while (dtree_node[goal_name] || dtree_node[goal_name] === false) {
-                goal_name += '\'';
+            for (let i = 2; dtree_node[goal_name] || dtree_node[goal_name] === false; ++i) {
+                goal_name = `${goal}${i}`;
             }
             const value = success ? colors.yellow('true') : colors.red('false');
             dtree_node[goal_name] = `${value} (already proved)`;
