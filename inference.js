@@ -1,5 +1,6 @@
 const readline = require('readline');
 const fs = require('fs');
+const colors = require('colors');
 const treeify = require('treeify');
 
 
@@ -191,10 +192,10 @@ class Prover {
     _backward_chaining(goal, dtree) {
         // Goal satisfied by KB or already proved
         if (this.tmp_consts.get(goal.toString())) {
-            dtree[goal.toString()] = 'true (already proved)';
+            dtree[goal.toString()] = `${colors.yellow('true')} (already proved)`;
             return true;
         } else if (goal.eval()) {
-            dtree[goal.toString()] = true;
+            dtree[goal.toString()] = colors.green('true');
             return true;
         }
 
@@ -205,7 +206,7 @@ class Prover {
             dtree[str] = {};
 
             if (rule.lhs.eval()) {
-                dtree[str] = true;
+                dtree[str] = colors.green('true');
                 if (rule.rhs.is_atom()) {
                     this._save_proof(rule.rhs.name);
                 }
@@ -228,7 +229,7 @@ class Prover {
             }
         }
 
-        dtree[goal.toString()] = false;
+        dtree[goal.toString()] = colors.red('false');
 
         return false;
     }
