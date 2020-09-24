@@ -185,7 +185,6 @@ class Prover {
         for (const rule of rules) {
             const str = rule.toString();
             dtree[str] = {};
-            let goals = [];
 
             if (rule.lhs.eval()) {
                 dtree[str] = true;
