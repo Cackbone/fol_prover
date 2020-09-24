@@ -207,8 +207,7 @@ class Prover {
             if (rule.lhs.eval()) {
                 dtree[str] = true;
                 if (rule.rhs.is_atom()) {
-                    const proved = new Atom(rule.lhs.name, true);
-                    this.tmp_consts.set(rule.rhs.name, proved);
+                    this._save_proof(rule.rhs.name);
                 }
                 return true;
             }
@@ -216,13 +215,15 @@ class Prover {
             if (rule.lhs.is_atom()) {
                 const res = this._backward_chaining(rule.lhs, dtree[str]);
                 if (res) {
-                    const proved = new Atom(rule.lhs.name, true);
-                    this.tmp_consts.set(rule.lhs.name, proved);
+                    this._save_proof(rule.lhs.name);
                 }
                 return res;
             }
 
             if (this._bc_operator(rule.lhs, dtree[str])) {
+                if (rule.rhs.is_atom()) {
+                    this._save_proof(rule.rhs.name);
+                }
                 return true;
             }
         }
@@ -230,6 +231,12 @@ class Prover {
         dtree[goal.toString()] = false;
 
         return false;
+    }
+
+
+    _save_proof(name) {
+        const proved = new Atom(name, true);
+        this.tmp_consts.set(name, proved);
     }
 
 
