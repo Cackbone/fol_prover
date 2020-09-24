@@ -189,13 +189,31 @@ class Prover {
         return this._bc_operator(goal, dtree);
     }
 
+    _dtree_add(dtree_node, goal, success=true, proved=false) {
+        if (proved) {
+            let goal_name = goal;
+
+            while (dtree_node[goal_name] || dtree_node[goal_name] === false) {
+                goal_name += '\'';
+            }
+            const value = success ? colors.yellow('true') : colors.red('false');
+            dtree_node[goal_name] = `${value} (already proved)`;
+        } else if (success) {
+            dtree_node[goal] = colors.green('true');
+        } else {
+            dtree_node[goal] = colors.red('false');
+        }
+    }
+
     _backward_chaining(goal, dtree) {
         // Goal satisfied by KB or already proved
-        if (this.tmp_consts.get(goal.toString())) {
-            dtree[goal.toString()] = `${colors.yellow('true')} (already proved)`;
+        const goal_str = goal.toString();
+        const proved = this.tmp_consts.get(goal_str);
+        if (proved) {
+            this._dtree_add(dtree, goal_str, proved.value, true);
             return true;
         } else if (goal.eval()) {
-            dtree[goal.toString()] = colors.green('true');
+            this._dtree_add(dtree, goal_str);
             return true;
         }
 
@@ -206,7 +224,7 @@ class Prover {
             dtree[str] = {};
 
             if (rule.lhs.eval()) {
-                dtree[str] = colors.green('true');
+                this._dtree_add(dtree, str);
                 if (rule.rhs.is_atom()) {
                     this._save_proof(rule.rhs.name);
                 }
@@ -229,14 +247,17 @@ class Prover {
             }
         }
 
-        dtree[goal.toString()] = colors.red('false');
+        this._dtree_add(dtree, goal_str, false);
+        if (goal.is_atom()) {
+            this._save_proof(goal.name, false);
+        }
 
         return false;
     }
 
 
-    _save_proof(name) {
-        const proved = new Atom(name, true);
+    _save_proof(name, success=true) {
+        const proved = new Atom(name, success);
         this.tmp_consts.set(name, proved);
     }
 
