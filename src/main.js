@@ -35,13 +35,22 @@ class REPL {
         case 'trace':
             this._ask(cmds[1], true);
             break;
+        case 'help':
+            console.log('Available commands:\n\
+* loadkb <filename>: Load a knowledge base in horn clause form\n\
+* ask <query>: Ask for a proof in horn clause form\n\
+* trace <query>: Same as \'ask\' with a tree of the execution\n\
+* help: Display a list of commands\n\
+* exit\
+');
+            break;
         case 'exit':
             this.rl.close();
             break;
         case '':
             break;
         default:
-            console.error(`Unknown command: '${cmds[0]}'`);
+            console.error(`Unknown command: '${cmds[0]}'\nType 'help' to get a list of commands.`);
         }
 
         this.rl.prompt();
