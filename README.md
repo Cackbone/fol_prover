@@ -1,5 +1,4 @@
 # FOL prover
-------------
 
 ## How to use
 
