@@ -89,6 +89,7 @@ class Prover {
                 const res = this._backward_chaining(rule.lhs, dtree[str]);
                 if (res) {
                     this._save_proof(rule.lhs.name);
+                    this._save_proof(rule.rhs.name);
                 }
                 return res;
             }
