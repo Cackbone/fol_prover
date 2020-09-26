@@ -54,7 +54,7 @@ class Prover {
             dtree_node[goal_name] = `${value} (already proved)`;
         } else if (success) {
             dtree_node[goal] = colors.green('true');
-        } else {
+        } else {;
             dtree_node[goal] = colors.red('false');
         }
     }
@@ -87,10 +87,9 @@ class Prover {
 
             if (rule.lhs.is_atom()) {
                 const res = this._backward_chaining(rule.lhs, dtree[str]);
-                if (res) {
-                    this._save_proof(rule.lhs.name);
-                    this._save_proof(rule.rhs.name);
-                }
+
+                this._save_proof(rule.lhs.name, res);
+                this._save_proof(rule.rhs.name, res);
                 return res;
             }
 
