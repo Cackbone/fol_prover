@@ -3,21 +3,14 @@ class Expr {
         if (!str) {
             throw new Error(`Invalid expression: ''`);
         }
+
         if (str.includes('=>')) {
-            const parts = str.split('=>');
-
-            if (parts.length !== 2) {
-                throw new Error(`Invalid expression: ${str}`);
-            }
-
-            const lhs = Expr.from(parts[0], consts, false);
-            const rhs = Expr.from(parts[1], consts, false);
-
-            return new Implication(lhs, rhs);
+            return Implication.from(str, consts);
         }
+
         const atoms = str
               .split('')
-              .map(c => consts.get(c) || new Atom(c, false));
+              .map(c => consts.get(c) || Atom.from(c, false));
         let expr = null;
 
         for (let i = 0; i < atoms.length; ++i) {
@@ -68,6 +61,19 @@ class And extends Operator {
 
 
 class Implication extends Operator {
+    static from(str, consts) {
+        const parts = str.split('=>');
+
+        if (parts.length !== 2) {
+            throw new Error(`Invalid expression: '${str}'`);
+        }
+
+        const lhs = Expr.from(parts[0], consts, false);
+        const rhs = Expr.from(parts[1], consts, false);
+
+        return new Implication(lhs, rhs);
+    }
+
     eval() {
         return !this.lhs.eval() || this.rhs.eval();
     }
@@ -83,6 +89,14 @@ class Atom extends Expr {
         super();
         this.name = name;
         this.value = value;
+    }
+
+    static from(name, value) {
+        if (name.length !== 1 || !name.match(/[A-Z]/)) {
+            throw new Error(`Invalid symbol: '${name}'`);
+        }
+
+        return new Atom(name, value);
     }
 
     eval() {
