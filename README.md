@@ -1,4 +1,4 @@
-# FOL prover
+# Logic prover
 
 ## How to use
 
