@@ -1,3 +1,5 @@
+// knowledgeBase.js
+
 const {Atom, Expr} = require('./expression');
 
 class KnowledgeBase {
